@@ -1,9 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:pay_crunch/screens/cart_screen.dart';
-import 'package:qrscan/qrscan.dart' as scanner;
+import 'package:pay_crunch/auth_service.dart';
 
-import 'screens/home.dart';
+import 'screens/cart_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -16,9 +15,10 @@ class MyApp extends StatelessWidget {
         accentColor: Colors.blueAccent,
         fontFamily: "Raleway",
       ),
-      home: Home(),
+      home: AuthService().handleAuth(),
       routes: {
         CartScreen.routeName: (_) => CartScreen(),
+        LoginScreen.routeName: (_) => LoginScreen(),
       },
     );
   }

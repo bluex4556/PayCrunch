@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pay_crunch/auth_service.dart';
 
 class MainDrawer extends StatelessWidget {
-
   Widget buildDrawerTile(String title, IconData icon, Function tapHandler) {
     return ListTile(
       leading: Icon(icon),
@@ -31,9 +31,10 @@ class MainDrawer extends StatelessWidget {
             ),
           ),
           buildDrawerTile("Home", Icons.category, () {}),
-          buildDrawerTile("Orders", Icons.settings, (){}),
+          buildDrawerTile("Orders", Icons.settings, () {}),
+          buildDrawerTile("SignOut", Icons.exit_to_app, ()=>AuthService().signOut())
         ],
       ),
-    );;
+    );
   }
 }

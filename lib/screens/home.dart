@@ -18,10 +18,12 @@ class _HomeState extends State<Home> {
   List<Product> productList = [
     Product(id: "1", barCode: "1234", name: "testitem", price: 10),
   ];
-
   List<CartItem> cart = [
-    CartItem(username: "me", productId: "1"),
-    CartItem(username: "me", productId: "1"),
+    CartItem(
+      username: "me",
+      product: Product(id: "1", barCode: "1234", name: "testitem", price: 10),
+      qty: 1,
+    ),
   ];
 
   @override
@@ -69,8 +71,8 @@ class _HomeState extends State<Home> {
     });
     setState(() {
       if (scannedProduct != null) {
-        cart.add(new CartItem(
-            username: user.username, productId: scannedProduct.id));
+        cart.add(
+            new CartItem(username: user.username, product: scannedProduct));
       } else
         print(scannedProduct);
     });

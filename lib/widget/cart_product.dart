@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:pay_crunch/models/cart_item.dart';
-import 'package:pay_crunch/models/product.dart';
 
 class CartProduct extends StatelessWidget {
-
-  final Product product;
   final CartItem cartItem;
   final Function increaseQuantityHandler;
   final Function decreaseQuantityHandler;
   final int index;
 
-  const CartProduct({this.product, this.cartItem, this.increaseQuantityHandler, this.decreaseQuantityHandler, this.index});
-
+  const CartProduct({
+    @required this.cartItem,
+    @required this.increaseQuantityHandler,
+    @required this.decreaseQuantityHandler,
+    @required this.index,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,23 +25,25 @@ class CartProduct extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 IconButton(
-                  icon: Icon(Icons.arrow_drop_up,),
+                  icon: Icon(
+                    Icons.arrow_drop_up,
+                  ),
                   onPressed: () {
-                  increaseQuantityHandler(index);
+                    increaseQuantityHandler(index);
                   },
                 ),
                 Text("${cartItem.qty}"),
                 IconButton(
                   icon: Icon(Icons.arrow_drop_down),
                   onPressed: () {
-                    decreaseQuantityHandler(cartItem,index);
+                    decreaseQuantityHandler(cartItem, index);
                   },
                 ),
               ],
             ),
           ),
-          title: Text(product.name),
-          trailing: Text("${product.price* cartItem.qty}"),
+          title: Text(cartItem.product.name),
+          trailing: Text("${cartItem.product.price * cartItem.qty}"),
         ),
       ),
     );
