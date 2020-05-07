@@ -4,6 +4,7 @@ import 'package:pay_crunch/auth_service.dart';
 import 'screens/cart_screen.dart';
 import 'screens/login_screen.dart';
 
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
