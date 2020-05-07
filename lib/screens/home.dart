@@ -59,14 +59,26 @@ class _HomeState extends State<Home> {
         .then((data) {
       DocumentSnapshot snapshot = data.documents.first;
       if (!snapshot.exists) print("exists");
-      cart.add(new CartItem(
+
+      Product productToAdd = new Product(
+        name: snapshot["name"],
+        price: snapshot["price"],
+        barCode: barcode,
+      );
+      int idx = cart.indexWhere((data) {
+        return data.product.name == productToAdd.name;
+      });
+      if (idx == -1) {
+        cart.add(new CartItem(
+          product: productToAdd,
           username: userId,
-          product: new Product(
-            name: snapshot["name"],
-            price: snapshot["price"],
-            barCode: barcode,
-          )));
-    }).catchError((error){
+          qty: 1,
+        ));
+      }
+      else{
+        cart[idx].qty++;
+      }
+    }).catchError((error) {
       print(error);
       print(barcode);
     });
