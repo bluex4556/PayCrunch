@@ -6,6 +6,6 @@ class User {
 
   User({
     @required this.username,
-    this.balance = 0,
+    this.balance = 10,
   });
 }

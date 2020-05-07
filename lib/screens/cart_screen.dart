@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pay_crunch/widget/cart_product.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../widget/cart_product.dart';
 import '../models/cart_item.dart';
 
 class CartScreen extends StatefulWidget {
@@ -12,7 +12,6 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  Map<String, Object> routeArgs;
   List<CartItem> cartItems;
   int totalPrice = 0;
 
@@ -39,9 +38,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     setState(() {
-      routeArgs =
-          ModalRoute.of(context).settings.arguments as Map<String, Object>;
-      cartItems = routeArgs["cart"];
+      cartItems = ModalRoute.of(context).settings.arguments as List<CartItem>;
       int price = 0;
       for (CartItem carItem in cartItems) {
         price += carItem.product.price * carItem.qty;

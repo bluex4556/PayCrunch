@@ -18,13 +18,11 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String userId;
-  List<Product> productList = [
-    Product(id: "1", barCode: "1234", name: "testitem", price: 10),
-  ];
+
   List<CartItem> cart = [
     CartItem(
       username: "me",
-      product: Product(id: "1", barCode: "1234", name: "testitem", price: 10),
+      product: Product(barCode: "1234", name: "testitem", price: 10),
       qty: 1,
     ),
   ];
@@ -33,7 +31,7 @@ class _HomeState extends State<Home> {
     print("adding user");
     Firestore.instance
         .collection('users')
-        .document()
+        .document(userId)
         .setData({'userId': userId, 'balance': 0});
     return User(username: userId, balance: 0);
   }
@@ -41,28 +39,47 @@ class _HomeState extends State<Home> {
   Future<User> getCurrentUser() async {
     return _auth.currentUser().then((user) => Firestore.instance
             .collection('users')
-            .where("userId", isEqualTo: user.uid)
-            .limit(1)
-            .snapshots()
-            .first
+            .document(user.uid)
+            .get()
             .then((data) {
-          DocumentSnapshot dataSnapshot = data.documents.first;
-          return new User(
-              username: dataSnapshot['userId'],
-              balance: dataSnapshot['balance']);
+          print(data["balance"]);
+          return new User(username: user.uid, balance: data['balance']);
         }).catchError((error) {
-          print(error);
           return addUser(user.uid);
         }));
   }
 
+  void addToCart(String barcode) {
+    Firestore.instance
+        .collection("products")
+        .where("barcode", isEqualTo: barcode)
+        .limit(1)
+        .snapshots()
+        .first
+        .then((data) {
+      DocumentSnapshot snapshot = data.documents.first;
+      if (!snapshot.exists) print("exists");
+      cart.add(new CartItem(
+          username: userId,
+          product: new Product(
+            name: snapshot["name"],
+            price: snapshot["price"],
+            barCode: barcode,
+          )));
+    }).catchError((error){
+      print(error);
+      print(barcode);
+    });
+  }
+
   @override
   void initState() {
-    _auth.currentUser().then((user){
+    _auth.currentUser().then((user) {
       userId = user.uid;
     });
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,10 +93,8 @@ class _HomeState extends State<Home> {
               color: Colors.white,
             ),
             onPressed: () {
-              Navigator.of(context).pushNamed(CartScreen.routeName, arguments: {
-                "cart": cart,
-                "product": productList,
-              });
+              Navigator.of(context)
+                  .pushNamed(CartScreen.routeName, arguments: cart);
               print("Go to cart");
             },
           )
@@ -99,7 +114,7 @@ class _HomeState extends State<Home> {
               ),
             );
           } else {
-            return CircularProgressIndicator();
+            return Center(child: CircularProgressIndicator());
           }
         },
       ),
@@ -112,16 +127,6 @@ class _HomeState extends State<Home> {
 
   Future _scan() async {
     String scannedCode = await scanner.scan();
-    Product scannedProduct = productList.firstWhere((product) {
-      if (product.barCode == scannedCode) return true;
-      return false;
-    });
-    setState(() {
-      if (scannedProduct != null) {
-        cart.add(
-            new CartItem(username: userId, product: scannedProduct));
-      } else
-        print(scannedProduct);
-    });
+    addToCart(scannedCode);
   }
 }
