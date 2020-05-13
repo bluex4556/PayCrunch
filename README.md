@@ -10,7 +10,7 @@ Paycrunch is mobile payement / shopping app which makes a users life easier , as
 [Shyam  Mylai](https://github.com/shyam2520)
 
 
-#Mobile programming project
+# Mobile programming project
 
 ## Getting Started
 
