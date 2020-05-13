@@ -1,5 +1,11 @@
 # pay_crunch
 
+Paycrunch is mobile payement / shopping app which makes a users life easier , as you don't have to waste your time standing in line for buying products for which payement can be done by scanning the products and paying on your mobile . 
+
+#Contributors 
+
+Ishaan Kolli(https://github.com/bluex4556)
+Shyam  Mylai(https://github.com/shyam2520)
 Mobile programming project
 
 ## Getting Started
