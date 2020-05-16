@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pay_crunch/auth_service.dart';
 import 'package:pay_crunch/widget/app_bar_widget.dart';
 import 'package:pay_crunch/widget/main_drawer.dart';
+import 'package:pay_crunch/widget/order_widget.dart';
 
 class OrderHistoryScreen extends StatelessWidget {
   static const routeName = "/order-history";
@@ -27,7 +28,14 @@ class OrderHistoryScreen extends StatelessWidget {
               child: CircularProgressIndicator(),
             );
           } else {
-            return Text("te");
+            List<DocumentSnapshot> documents =
+                (snapshot.data as QuerySnapshot).documents.toList();
+            return ListView.builder(
+              itemBuilder: (context, index) {
+                return OrderWidget(documents[index].data);
+              },
+              itemCount: documents.length,
+            );
           }
         },
       ),
