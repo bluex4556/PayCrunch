@@ -8,6 +8,11 @@ class Product {
   Product({
     @required this.name,
     @required this.price,
-    @required this.barCode,
+    this.barCode,
   });
+
+  Product.fromJson(Map<String,dynamic> json):
+      name = json["name"],
+      price= json["price"],
+      barCode = null;
 }

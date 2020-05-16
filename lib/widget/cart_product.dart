@@ -29,10 +29,10 @@ class CartProduct extends StatelessWidget {
                     Icons.arrow_drop_up,
                   ),
                   onPressed: () {
-                    increaseQuantityHandler(index);
+                    increaseQuantityHandler(cartItem,index);
                   },
                 ),
-                Text("${cartItem.qty}"),
+                Expanded(child: Text("${cartItem.qty}")),
                 IconButton(
                   icon: Icon(Icons.arrow_drop_down),
                   onPressed: () {

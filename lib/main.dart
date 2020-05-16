@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pay_crunch/auth_service.dart';
+import 'package:pay_crunch/screens/payment_screen.dart';
 
 import 'screens/cart_screen.dart';
 import 'screens/login_screen.dart';
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
       routes: {
         CartScreen.routeName: (_) => CartScreen(),
         LoginScreen.routeName: (_) => LoginScreen(),
+        PaymentScreen.routeName: (_)=>PaymentScreen(),
       },
     );
   }

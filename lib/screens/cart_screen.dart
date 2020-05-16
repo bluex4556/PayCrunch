@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:pay_crunch/auth_service.dart';
+import 'package:pay_crunch/screens/payment_screen.dart';
 
 import '../widget/cart_product.dart';
 import '../models/cart_item.dart';
@@ -12,77 +16,102 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  List<CartItem> cartItems;
   int totalPrice = 0;
+  List<CartItem> cart;
 
-  void increaseQuantityHandler(int index) {
+  @override
+  void initState() {
+    Firestore.instance
+        .collection("users")
+        .document(AuthService.userId)
+        .get()
+        .then((value) {
+      setState(() {
+        totalPrice = (value["cartPrice"] == null)? 0: value["cartPrice"];
+      });
+    });
+    super.initState();
+  }
+
+  void increaseQuantityHandler(CartItem cartItem, int index) {
+    Firestore.instance
+        .collection("users")
+        .document(AuthService.userId)
+        .updateData({
+      "cart": FieldValue.arrayRemove([
+        jsonEncode(
+          cartItem,
+        )
+      ]),
+      "cartPrice": FieldValue.increment(cartItem.product.price),
+    }).then((value) {
+      cartItem.qty++;
+      Firestore.instance.document("/users/${AuthService.userId}").updateData({
+        "cart": FieldValue.arrayUnion([
+          jsonEncode(
+            cartItem,
+          )
+        ])
+      });
+    });
+
     setState(() {
-      cartItems[index].qty++;
-      totalPrice += cartItems[index].product.price;
+      totalPrice += cartItem.product.price;
     });
   }
 
   void decreaseQuantityHandler(CartItem cartItem, int index) {
     if (cartItem.qty == 1) {
-      setState(() {
-        cartItems.removeAt(index);
+      //remove cart item
+      Firestore.instance
+          .collection("users")
+          .document(AuthService.userId)
+          .updateData({
+        "cart": FieldValue.arrayRemove([
+          jsonEncode(
+            cartItem,
+          )
+        ]),
+        "cartPrice": FieldValue.increment(-cartItem.product.price),
       });
     } else {
-      setState(() {
-        cartItems[index].qty--;
+      //reduce qty by one
+      Firestore.instance
+          .collection("users")
+          .document(AuthService.userId)
+          .updateData({
+        "cart": FieldValue.arrayRemove([
+          jsonEncode(
+            cartItem,
+          )
+        ]),
+        "cartPrice": FieldValue.increment(-cartItem.product.price),
+      }).then((value) {
+        cartItem.qty--;
+        Firestore.instance.document("/users/${AuthService.userId}").updateData({
+          "cart": FieldValue.arrayUnion([
+            jsonEncode(
+              cartItem,
+            )
+          ])
+        });
       });
+
     }
-    totalPrice -= cartItems[index].product.price;
+    setState(() {
+      totalPrice -= cartItem.product.price;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    setState(() {
-      cartItems = ModalRoute.of(context).settings.arguments as List<CartItem>;
-      int price = 0;
-      for (CartItem carItem in cartItems) {
-        price += carItem.product.price * carItem.qty;
-      }
-      totalPrice = price;
-    });
     return Scaffold(
       appBar: AppBar(
         title: Text("Cart"),
       ),
-      bottomNavigationBar: Container(
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: ListTile(
-                contentPadding: const EdgeInsets.only(left: 30),
-                title: Text("Total"),
-                subtitle: Text("$totalPrice"),
-              ),
-            ),
-            Expanded(
-              child: SizedBox(
-                height: 50,
-                child: FlatButton(
-                  color: Theme.of(context).accentColor,
-                  child: Text("Check Out"),
-                  textColor: Colors.white,
-                  onPressed: () {},
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Text(
-            "Shopping Cart",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
           ListTile(
             leading: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -91,21 +120,62 @@ class _CartScreenState extends State<CartScreen> {
             title: Text("Product Name"),
             trailing: Text("Price"),
           ),
-          Container(
-            height: MediaQuery.of(context).size.height * 0.65,
-            child: ListView.builder(
-              itemBuilder: (ctx, index) {
-                return CartProduct(
-                  cartItem: cartItems[index],
-                  index: index,
-                  increaseQuantityHandler: increaseQuantityHandler,
-                  decreaseQuantityHandler: decreaseQuantityHandler,
-                );
+          Expanded(
+            child: StreamBuilder(
+              stream: Firestore.instance
+                  .collection("/users")
+                  .document(AuthService.userId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.waiting) {
+
+                  if(snapshot.data["cart"]==null)
+                    return Text("No products in cart");
+                  cart =
+                      (snapshot.data["cart"] as List<dynamic>).map((element) {
+                    return new CartItem.fromJson(jsonDecode(element));
+                  }).toList();
+                  return ListView.builder(
+                    itemBuilder: (ctx, index) {
+                      return CartProduct(
+                        cartItem: cart[index],
+                        index: index,
+                        increaseQuantityHandler: increaseQuantityHandler,
+                        decreaseQuantityHandler: decreaseQuantityHandler,
+                      );
+                    },
+                    itemCount: cart.length,
+                  );
+                } else if (snapshot.hasError) {
+                  return Text("error");
+                } else {
+                  return Center(child: CircularProgressIndicator());
+                }
               },
-              itemCount: cartItems.length,
             ),
           ),
+          ListTile(
+            title: Text("Total Cost"),
+            trailing: Text("$totalPrice"),
+          ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        child: SizedBox(
+          height: 50,
+          child: FlatButton(
+            disabledColor: Colors.black38,
+            color: Theme.of(context).accentColor,
+            child: Text("Check Out"),
+            textColor: Colors.white,
+            onPressed: (totalPrice==0)?null:() {
+              Navigator.pushReplacementNamed(context, PaymentScreen.routeName,arguments: {
+                "cart" : cart,
+                "cost" : totalPrice,
+              });
+            },
+          ),
+        ),
       ),
     );
   }

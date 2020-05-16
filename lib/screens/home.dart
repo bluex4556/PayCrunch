@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +11,8 @@ import '../screens/cart_screen.dart';
 import '../models/user.dart';
 import '../widget/main_drawer.dart';
 import '../widget/balance_card.dart';
+import '../auth_service.dart';
+
 
 class Home extends StatefulWidget {
   @override
@@ -17,67 +21,29 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  String userId;
-
-  List<CartItem> cart = [
-    CartItem(
-      username: "me",
-      product: Product(barCode: "1234", name: "testitem", price: 10),
-      qty: 1,
-    ),
-  ];
-
-  User addUser(String userId) {
-    print("adding user");
-    Firestore.instance
-        .collection('users')
-        .document(userId)
-        .setData({'userId': userId, 'balance': 0});
-    return User(username: userId, balance: 0);
-  }
-
-  Future<User> getCurrentUser() async {
-    return _auth.currentUser().then((user) => Firestore.instance
-            .collection('users')
-            .document(user.uid)
-            .get()
-            .then((data) {
-          print(data["balance"]);
-          return new User(username: user.uid, balance: data['balance']);
-        }).catchError((error) {
-          return addUser(user.uid);
-        }));
-  }
 
   void addToCart(String barcode) {
     Firestore.instance
         .collection("products")
-        .where("barcode", isEqualTo: barcode)
-        .limit(1)
-        .snapshots()
-        .first
+        .document(barcode)
+        .get()
         .then((data) {
-      DocumentSnapshot snapshot = data.documents.first;
-      if (!snapshot.exists) print("exists");
-
       Product productToAdd = new Product(
-        name: snapshot["name"],
-        price: snapshot["price"],
+        name: data["name"],
+        price: data["price"],
         barCode: barcode,
       );
-      int idx = cart.indexWhere((data) {
-        return data.product.name == productToAdd.name;
+      Firestore.instance
+          .collection("users")
+          .document(AuthService.userId)
+          .updateData({
+        "cart": FieldValue.arrayUnion([
+          jsonEncode(new CartItem(
+            product: productToAdd,
+          ))
+        ]),
+        "cartPrice": FieldValue.increment(productToAdd.price)
       });
-      if (idx == -1) {
-        cart.add(new CartItem(
-          product: productToAdd,
-          username: userId,
-          qty: 1,
-        ));
-      }
-      else{
-        cart[idx].qty++;
-      }
     }).catchError((error) {
       print(error);
       print(barcode);
@@ -87,7 +53,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     _auth.currentUser().then((user) {
-      userId = user.uid;
+      AuthService.userId = user.uid;
     });
     super.initState();
   }
@@ -105,15 +71,13 @@ class _HomeState extends State<Home> {
               color: Colors.white,
             ),
             onPressed: () {
-              Navigator.of(context)
-                  .pushNamed(CartScreen.routeName, arguments: cart);
-              print("Go to cart");
+              Navigator.of(context).pushNamed(CartScreen.routeName);
             },
           )
         ],
       ),
       body: FutureBuilder(
-        future: getCurrentUser(),
+        future: AuthService.getCurrentUser(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             User currentUser = snapshot.data;
@@ -136,7 +100,6 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-
   Future _scan() async {
     String scannedCode = await scanner.scan();
     addToCart(scannedCode);
