@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:pay_crunch/widget/app_bar_widget.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 
 import '../models/cart_item.dart';
@@ -13,8 +14,9 @@ import '../widget/main_drawer.dart';
 import '../widget/balance_card.dart';
 import '../auth_service.dart';
 
-
 class Home extends StatefulWidget {
+  static const routeName = "/home";
+
   @override
   _HomeState createState() => _HomeState();
 }
@@ -61,14 +63,14 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: MainDrawer(),
-      appBar: AppBar(
-        title: Text("Pay Crunch"),
+      drawer: MainDrawer("Home"),
+      drawerScrimColor: Colors.black,
+      appBar: AppBarWidget(
+        title: "",
         actions: <Widget>[
           IconButton(
             icon: Icon(
               Icons.shopping_cart,
-              color: Colors.white,
             ),
             onPressed: () {
               Navigator.of(context).pushNamed(CartScreen.routeName);
@@ -84,7 +86,13 @@ class _HomeState extends State<Home> {
             return Padding(
               padding: const EdgeInsets.all(10.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text("Pay Crunch",
+                        style: Theme.of(context).textTheme.headline4),
+                  ),
                   BalanceCard(currentUser.balance),
                 ],
               ),
@@ -100,6 +108,7 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+
   Future _scan() async {
     String scannedCode = await scanner.scan();
     addToCart(scannedCode);

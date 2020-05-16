@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:pay_crunch/auth_service.dart';
+import 'package:pay_crunch/widget/app_bar_widget.dart';
 
 class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
@@ -20,9 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Login"),
-        ),
+        appBar: AppBarWidget(title: "Login",),
         body: Builder(builder: (BuildContext context) {
           return Container(
             alignment: AlignmentDirectional.center,

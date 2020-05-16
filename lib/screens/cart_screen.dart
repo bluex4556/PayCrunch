@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pay_crunch/auth_service.dart';
 import 'package:pay_crunch/screens/payment_screen.dart';
+import 'package:pay_crunch/widget/app_bar_widget.dart';
 
 import '../widget/cart_product.dart';
 import '../models/cart_item.dart';
@@ -106,9 +107,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Cart"),
-      ),
+      appBar: AppBarWidget(title: "Cart",),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
